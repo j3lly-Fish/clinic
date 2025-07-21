@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Main ClinicalGoTo application
+  clinicalgoto:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: clinicalgoto-app
+    restart: unless-stopped
+    ports:
+      - "5555:5555"
+    environment:
+      - NODE_ENV=production
+      - PORT=5555
+      - WEBSITE_URL=http://localhost:5555
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - clinicalgoto-network
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: clinicalgoto-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - clinicalgoto-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: clinicalgoto-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - clinicalgoto-network
+    depends_on:
+      - clinicalgoto
+    profiles:
+      - production
+
+  # PostgreSQL database (optional for data persistence)
+  postgres:
+    image: postgres:15-alpine
+    container_name: clinicalgoto-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: clinicalgoto
+      POSTGRES_USER: clinicalgoto
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-clinicalgoto123}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - clinicalgoto-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinicalgoto"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - database
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  clinicalgoto-network:
+    driver: bridge

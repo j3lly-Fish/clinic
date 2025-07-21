@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClinicalGoTo - Find Clinical Trials Near You</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Find clinical trials in your area with ClinicalGoTo. Connect with cutting-edge medical research opportunities and contribute to advancing healthcare.">
+    <meta name="keywords" content="clinical trials, medical research, healthcare, clinical studies, medical trials, patient recruitment">
+    <meta name="author" content="ClinicalGoTo">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="ClinicalGoTo - Find Clinical Trials Near You">
+    <meta property="og:description" content="Connect with clinical trials in your area and contribute to advancing healthcare research.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://clinicalgoto.com">
+    <meta property="og:image" content="https://clinicalgoto.com/images/og-image.jpg">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ClinicalGoTo - Find Clinical Trials Near You">
+    <meta name="twitter:description" content="Connect with clinical trials in your area and contribute to advancing healthcare research.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ClinicalGoTo",
+        "url": "https://clinicalgoto.com",
+        "description": "Find clinical trials in your area and connect with medical research opportunities",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://clinicalgoto.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>ClinicalGoTo</h1>
+                <p class="tagline">Your Gateway to Clinical Research</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h2>Find Clinical Trials in Your Area</h2>
+                    <p>Connect with cutting-edge medical research opportunities and contribute to advancing healthcare.</p>
+                    
+                    <!-- Search Form -->
+                    <div class="search-section">
+                        <div class="search-form">
+                            <input type="text" id="locationInput" placeholder="Enter your city or zip code" class="search-input">
+                            <input type="text" id="conditionInput" placeholder="Enter medical condition (optional)" class="search-input">
+                            <button id="searchBtn" class="search-btn">Search Clinical Trials</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search Results Section -->
+            <section id="searchResults" class="search-results" style="display: none;">
+                <h3>Clinical Trials Found</h3>
+                <div id="resultsContainer" class="results-container">
+                    <!-- Results will be populated here -->
+                </div>
+                <div class="cta-section">
+                    <h4>Interested in participating?</h4>
+                    <p>Enter your information below to get connected with clinical trials that match your profile.</p>
+                    <button id="showFormBtn" class="cta-btn">Get Started</button>
+                </div>
+            </section>
+
+            <!-- User Registration Form -->
+            <section id="registrationForm" class="registration-form" style="display: none;">
+                <div class="form-container">
+                    <h3>Get Connected to Clinical Trials</h3>
+                    <form id="userForm" class="user-form">
+                        <!-- Step 1: Full Name -->
+                        <div class="form-step active" id="step1">
+                            <label for="fullName">What's your full name?</label>
+                            <input type="text" id="fullName" name="fullName" class="form-input">
+                            <button type="button" class="next-btn" data-next-step="2">Next</button>
+                        </div>
+
+                        <!-- Step 2: Email -->
+                        <div class="form-step" id="step2">
+                            <label for="email">What's your email address?</label>
+                            <input type="email" id="email" name="email" class="form-input">
+                            <button type="button" class="prev-btn" data-prev-step="1">Previous</button>
+                            <button type="button" class="next-btn" data-next-step="3">Next</button>
+                        </div>
+
+                        <!-- Step 3: Phone -->
+                        <div class="form-step" id="step3">
+                            <label for="phone">What's your phone number?</label>
+                            <input type="tel" id="phone" name="phone" class="form-input">
+                            <button type="button" class="prev-btn" data-prev-step="2">Previous</button>
+                            <button type="button" class="next-btn" data-next-step="4">Next</button>
+                        </div>
+
+                        <!-- Step 4: Address -->
+                        <div class="form-step" id="step4">
+                            <label for="address">What's your address?</label>
+                            <textarea id="address" name="address" class="form-input" placeholder="Street address, city, state, zip code"></textarea>
+                            <button type="button" class="prev-btn" data-prev-step="3">Previous</button>
+                            <button type="button" class="next-btn" data-next-step="5">Next</button>
+                        </div>
+
+                        <!-- Step 5: Consent -->
+                        <div class="form-step" id="step5">
+                            <div class="consent-section">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="consent" name="consent">
+                                    <span class="checkmark"></span>
+                                    I agree to be contacted regarding clinical trials and healthcare research opportunities.
+                                </label>
+                            </div>
+                            <button type="button" class="prev-btn" data-prev-step="4">Previous</button>
+                            <button type="submit" class="submit-btn">Join Clinical Trials Network</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Success Message -->
+            <section id="successMessage" class="success-message" style="display: none;">
+                <div class="success-content">
+                    <h3>Welcome to ClinicalGoTo!</h3>
+                    <p>Thank you for joining our clinical trials network. You'll receive a welcome email shortly with more information.</p>
+                    <p>We'll be in touch when we find clinical trials that match your profile.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 ClinicalGoTo. All rights reserved.</p>
+            <p>Connecting patients with clinical research opportunities.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        console.log('Loading JavaScript with cache bust:', new Date().getTime());
+        
+        // Debug: Check if all DOM elements exist after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== DOM LOADED - DEBUGGING ===');
+            
+            const elements = {
+                'searchBtn': document.getElementById('searchBtn'),
+                'locationInput': document.getElementById('locationInput'),
+                'showFormBtn': document.getElementById('showFormBtn'),
+                'registrationForm': document.getElementById('registrationForm'),
+                'userForm': document.getElementById('userForm'),
+                'step1': document.getElementById('step1'),
+                'step2': document.getElementById('step2'),
+                'fullName': document.getElementById('fullName'),
+                'nextBtn1': document.querySelector('#step1 .next-btn'),
+                'nextBtn2': document.querySelector('#step2 .next-btn')
+            };
+            
+            Object.keys(elements).forEach(name => {
+                if (elements[name]) {
+                    console.log('✓ Found element:', name);
+                } else {
+                    console.error('✗ Missing element:', name);
+                }
+            });
+            
+            // Test button clicks
+            const nextBtns = document.querySelectorAll('.next-btn');
+            console.log('Found', nextBtns.length, 'Next buttons');
+            
+            nextBtns.forEach((btn, index) => {
+                console.log('Next button', index + 1, 'data-next-step:', btn.getAttribute('data-next-step'));
+            });
+            
+            console.log('=== END DOM DEBUG ===');
+        });
+    </script>
+    <script src="/js/app.js?v=2025010205"></script>
+</body>
+</html>

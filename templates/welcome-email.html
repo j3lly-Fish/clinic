@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ClinicalGoTo</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        .content p {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #4a5568;
+        }
+        .highlight {
+            background-color: #e6fffa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #38b2ac;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f7fafc;
+            padding: 20px 30px;
+            font-size: 14px;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .unsubscribe {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        .social-links {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                margin: 0 10px;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .welcome-message {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>ClinicalGoTo</h1>
+            <p>Your Gateway to Clinical Research</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="welcome-message">
+                Welcome to ClinicalGoTo, {{USER_NAME}}! 🎉
+            </div>
+            
+            <p>Thank you for joining our clinical trials network. We're excited to help you discover meaningful research opportunities that could advance medical science and potentially benefit your health.</p>
+            
+            <div class="highlight">
+                <strong>What happens next?</strong>
+                <p style="margin-bottom: 10px;">Our team will review your profile and match you with relevant clinical trials in your area. When we find suitable opportunities, we'll reach out to you with details about:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Study objectives and procedures</li>
+                    <li>Eligibility requirements</li>
+                    <li>Time commitments and compensation</li>
+                    <li>Location and contact information</li>
+                </ul>
+            </div>
+            
+            <p>Clinical trials are essential for developing new treatments and improving healthcare for everyone. By participating, you're contributing to medical breakthroughs that could help millions of people worldwide.</p>
+            
+            <p>We understand that participating in a clinical trial is a significant decision. Our team is here to support you every step of the way, ensuring you have all the information you need to make informed choices about your healthcare.</p>
+            
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{{PORTAL_URL}}" class="button">Access Your Portal</a>
+            </div>
+            
+            <p><strong>Questions?</strong> Our friendly support team is here to help. Feel free to reach out to us at <a href="mailto:support@clinicalgoto.com">support@clinicalgoto.com</a> or call us at <a href="tel:+1-800-CLINICAL">1-800-CLINICAL</a>.</p>
+            
+            <div class="social-links">
+                <a href="{{FACEBOOK_URL}}">Facebook</a>
+                <a href="{{TWITTER_URL}}">Twitter</a>
+                <a href="{{LINKEDIN_URL}}">LinkedIn</a>
+            </div>
+            
+            <p style="margin-top: 25px;">Thank you for choosing ClinicalGoTo. Together, we're advancing the future of healthcare.</p>
+            
+            <p style="margin-top: 20px; font-style: italic;">Best regards,<br>
+            The ClinicalGoTo Team</p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>ClinicalGoTo</strong><br>
+            Connecting patients with clinical research opportunities</p>
+            
+            <p>📍 123 Medical Research Drive, Suite 100<br>
+            Healthcare City, HC 12345<br>
+            📞 1-800-CLINICAL | 📧 <a href="mailto:info@clinicalgoto.com">info@clinicalgoto.com</a></p>
+            
+            <p>🌐 <a href="{{WEBSITE_URL}}">www.clinicalgoto.com</a></p>
+            
+            <div class="unsubscribe">
+                <p><strong>Manage Your Preferences</strong></p>
+                <p>You're receiving this email because you signed up for clinical trial notifications at ClinicalGoTo.</p>
+                <p>
+                    <a href="{{UNSUBSCRIBE_URL}}">Unsubscribe</a> from all emails | 
+                    <a href="{{PREFERENCES_URL}}">Update your preferences</a> | 
+                    <a href="{{PRIVACY_URL}}">Privacy Policy</a>
+                </p>
+                <p style="margin-top: 15px; font-size: 11px; color: #a0aec0;">
+                    This email was sent to {{USER_EMAIL}}. If you no longer wish to receive these emails, 
+                    you can <a href="{{UNSUBSCRIBE_URL}}" style="color: #a0aec0;">unsubscribe here</a>.
+                </p>
+                <p style="font-size: 11px; color: #a0aec0;">
+                    © 2025 ClinicalGoTo. All rights reserved. ClinicalGoTo is a registered trademark.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

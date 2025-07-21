@@ -1,0 +1,48 @@
+version: '3.8'
+
+# Development override for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  clinicalgoto:
+    build:
+      target: builder
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugger port
+    command: ["nodemon", "--inspect=0.0.0.0:9229", "server.js"]
+    healthcheck:
+      disable: true  # Disable health check in development
+
+  # Development database with exposed ports
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: clinicalgoto_dev
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+    profiles: []  # Always start in development
+
+  # Development Redis with exposed ports
+  redis:
+    ports:
+      - "6379:6379"
+    profiles: []  # Always start in development
+
+  # Mail catcher for testing emails
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: clinicalgoto-mailcatcher
+    ports:
+      - "1080:1080"  # Web interface
+      - "1025:1025"  # SMTP server
+    networks:
+      - clinicalgoto-network
