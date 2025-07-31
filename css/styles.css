@@ -506,3 +506,440 @@ textarea.form-input {
         border-width: 3px;
     }
 }
+
+/* New User-First Flow Styles */
+
+/* User Information Section */
+.user-info-section {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.user-info-section .form-container {
+    padding: 2rem;
+}
+
+.user-info-section h3 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Form Steps */
+.form-step {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.form-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-step label {
+    display: block;
+    font-weight: 500;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.required {
+    color: #e53e3e;
+    font-weight: 600;
+}
+
+.form-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f7fafc;
+    margin-bottom: 1rem;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input.error {
+    border-color: #e53e3e;
+    background-color: #fed7d7;
+}
+
+.help-text {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+/* Condition Input with Suggestions */
+.condition-input-wrapper {
+    position: relative;
+}
+
+.condition-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f7fafc;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: #edf2f7;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* Form Navigation Buttons */
+.prev-btn, .next-btn, .submit-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0.5rem 0.25rem;
+    min-width: 120px;
+}
+
+.next-btn, .submit-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.next-btn:hover, .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.prev-btn {
+    background: #f7fafc;
+    color: #4a5568;
+    border: 2px solid #e2e8f0;
+}
+
+.prev-btn:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff40;
+    border-radius: 50%;
+    border-top-color: #ffffff;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Checkbox Styling */
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+}
+
+/* Personalized Results */
+.search-results {
+    padding: 2rem 0;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.results-header h3 {
+    color: #2d3748;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.personalized-message {
+    color: #4a5568;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.results-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f7fafc;
+    border-radius: 8px;
+    color: #4a5568;
+}
+
+/* Personalized Trial Cards */
+.trial-card.personalized {
+    position: relative;
+    border: 2px solid #667eea;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+}
+
+.trial-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 0 8px 0 8px;
+}
+
+.match-info {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.match-condition, .match-location {
+    background: #e6fffa;
+    color: #234e52;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.trial-description mark {
+    background-color: #fed7e2;
+    color: #97266d;
+    padding: 1px 3px;
+    border-radius: 3px;
+}
+
+/* No Results Styling */
+.no-results {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.no-results h4 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.no-results p {
+    color: #4a5568;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.no-results-actions {
+    background: #f7fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.no-results-actions ul {
+    list-style: none;
+    padding: 0;
+}
+
+.no-results-actions li {
+    padding: 0.5rem 0;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.no-results-actions li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #38a169;
+    font-weight: bold;
+}
+
+/* Success Message Enhancements */
+.success-message {
+    padding: 2rem 0;
+}
+
+.success-content {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.success-content h3 {
+    color: #2d3748;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.next-steps {
+    background: #f0fff4;
+    border: 2px solid #9ae6b4;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.next-steps h4 {
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+.next-steps ul {
+    list-style: none;
+    padding: 0;
+}
+
+.next-steps li {
+    padding: 0.5rem 0;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.next-steps li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #38a169;
+    font-weight: bold;
+}
+
+/* Responsive Design for New Flow */
+@media (max-width: 768px) {
+    .user-info-section {
+        margin: 1rem;
+    }
+    
+    .user-info-section .form-container {
+        padding: 1.5rem;
+    }
+    
+    .form-step label {
+        font-size: 1rem;
+    }
+    
+    .match-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .next-steps {
+        padding: 1.5rem;
+    }
+    
+    .success-content {
+        padding: 2rem;
+    }
+}
+
+/* Success Message Positioning Fix */
+.success-message {
+    margin-top: 3rem;
+    border-top: 2px solid #e2e8f0;
+    padding-top: 2rem;
+}
+
+.success-message .success-content {
+    background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+    border: 2px solid #9ae6b4;
+}
+
+/* Better spacing for results followed by success message */
+.search-results + .success-message {
+    margin-top: 2rem;
+}
+
+/* Ensure both sections are visible simultaneously */
+.search-results.show-with-success {
+    margin-bottom: 1rem;
+}
+
+
+/* Ensure proper stacking and visibility */
+.search-results {
+    position: relative;
+    z-index: 2;
+}
+
+.success-message {
+    position: relative;  
+    z-index: 1;
+    clear: both;
+}
+
+/* Force visibility when both sections are shown */
+.search-results.show-with-success {
+    display: block !important;
+    visibility: visible !important;
+}
+

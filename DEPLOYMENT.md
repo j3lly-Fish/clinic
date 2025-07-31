@@ -17,6 +17,9 @@ This guide covers deploying ClinicalGoTo to various environments.
 - [ ] Database connection tested (if applicable)
 - [ ] SSL certificates ready (for production)
 - [ ] Domain name configured
+- [ ] Admin credentials configured securely
+- [ ] Session secret generated and set
+- [ ] Admin panel tested and accessible
 
 ### ✅ Documentation
 - [ ] README.md updated
@@ -95,6 +98,11 @@ WEBSITE_URL=https://clinicalgoto.com
 # Node environment
 NODE_ENV=production
 PORT=5555
+
+# Admin Authentication
+ADMIN_USERNAME=your_admin_username
+ADMIN_PASSWORD=your_secure_admin_password
+SESSION_SECRET=your-super-secret-session-key-change-this-in-production
 
 # Security (optional)
 RATE_LIMIT_WINDOW_MS=900000
@@ -304,6 +312,9 @@ docker logs clinicalgoto-app --tail 100
 - [ ] Use non-root user in Docker
 - [ ] Keep dependencies updated
 - [ ] Regular security audits
+- [ ] Admin credentials are strong and unique
+- [ ] Session secrets are properly generated
+- [ ] Admin login rate limiting is enabled
 - [ ] Monitor for vulnerabilities
 
 ### Environment Variables Security
@@ -311,6 +322,9 @@ docker logs clinicalgoto-app --tail 100
 - Use secrets management in cloud platforms
 - Rotate credentials regularly
 - Use least-privilege principle
+- Admin passwords must be strong and not use defaults
+- Session secrets should be cryptographically random
+- Admin access should be monitored and logged
 
 ## Backup and Recovery
 

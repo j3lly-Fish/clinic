@@ -17,7 +17,7 @@ services:
     ports:
       - "3000:3000"
       - "9229:9229"  # Node.js debugger port
-    command: ["nodemon", "--inspect=0.0.0.0:9229", "server.js"]
+    command: ["npx", "nodemon", "--inspect=0.0.0.0:9229", "server.js"]
     healthcheck:
       disable: true  # Disable health check in development
 

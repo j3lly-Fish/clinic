@@ -62,18 +62,76 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <!-- Hero Section -->
+            <!-- Hero Section with User Information Form -->
             <section class="hero">
                 <div class="hero-content">
-                    <h2>Find Clinical Trials in Your Area</h2>
-                    <p>Connect with cutting-edge medical research opportunities and contribute to advancing healthcare.</p>
+                    <h2>Find Clinical Trials Tailored to Your Condition</h2>
+                    <p>Connect with cutting-edge medical research opportunities. Tell us about yourself first, and we'll find the most relevant clinical trials in your area.</p>
                     
-                    <!-- Search Form -->
-                    <div class="search-section">
-                        <div class="search-form">
-                            <input type="text" id="locationInput" placeholder="Enter your city or zip code" class="search-input">
-                            <input type="text" id="conditionInput" placeholder="Enter medical condition (optional)" class="search-input">
-                            <button id="searchBtn" class="search-btn">Search Clinical Trials</button>
+                    <!-- User Information Form -->
+                    <div class="user-info-section">
+                        <div class="form-container">
+                            <h3>Get Started - Tell Us About Yourself</h3>
+                            <form id="userInfoForm" class="user-info-form">
+                                <!-- Step 1: Full Name -->
+                                <div class="form-step active" id="step1">
+                                    <label for="fullName">What's your full name? <span class="required">*</span></label>
+                                    <input type="text" id="fullName" name="fullName" class="form-input" required>
+                                    <button type="button" class="next-btn" data-next-step="2">Next</button>
+                                </div>
+
+                                <!-- Step 2: Email -->
+                                <div class="form-step" id="step2">
+                                    <label for="email">What's your email address? <span class="required">*</span></label>
+                                    <input type="email" id="email" name="email" class="form-input" required>
+                                    <button type="button" class="prev-btn" data-prev-step="1">Previous</button>
+                                    <button type="button" class="next-btn" data-next-step="3">Next</button>
+                                </div>
+
+                                <!-- Step 3: Phone -->
+                                <div class="form-step" id="step3">
+                                    <label for="phone">What's your phone number? <span class="required">*</span></label>
+                                    <input type="tel" id="phone" name="phone" class="form-input" required>
+                                    <button type="button" class="prev-btn" data-prev-step="2">Previous</button>
+                                    <button type="button" class="next-btn" data-next-step="4">Next</button>
+                                </div>
+
+                                <!-- Step 4: Medical Condition (Now Required) -->
+                                <div class="form-step" id="step4">
+                                    <label for="condition">What medical condition are you interested in researching? <span class="required">*</span></label>
+                                    <div class="condition-input-wrapper">
+                                        <input type="text" id="condition" name="condition" class="form-input" placeholder="e.g., Diabetes, Cancer, Heart Disease, Alzheimer's" required>
+                                        <div class="condition-suggestions" id="conditionSuggestions" style="display: none;">
+                                            <!-- Suggestions will be populated here -->
+                                        </div>
+                                    </div>
+                                    <p class="help-text">This helps us find the most relevant clinical trials for you.</p>
+                                    <button type="button" class="prev-btn" data-prev-step="3">Previous</button>
+                                    <button type="button" class="next-btn" data-next-step="5">Next</button>
+                                </div>
+
+                                <!-- Step 5: Location -->
+                                <div class="form-step" id="step5">
+                                    <label for="location">What's your location? <span class="required">*</span></label>
+                                    <input type="text" id="location" name="location" class="form-input" placeholder="City, State or ZIP code" required>
+                                    <p class="help-text">We'll find clinical trials near you.</p>
+                                    <button type="button" class="prev-btn" data-prev-step="4">Previous</button>
+                                    <button type="button" class="next-btn" data-next-step="6">Next</button>
+                                </div>
+
+                                <!-- Step 6: Consent -->
+                                <div class="form-step" id="step6">
+                                    <div class="consent-section">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="consent" name="consent" required>
+                                            <span class="checkmark"></span>
+                                            I agree to be contacted regarding clinical trials and healthcare research opportunities. <span class="required">*</span>
+                                        </label>
+                                    </div>
+                                    <button type="button" class="prev-btn" data-prev-step="5">Previous</button>
+                                    <button type="submit" class="submit-btn">Find My Clinical Trials</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -81,77 +139,36 @@
 
             <!-- Search Results Section -->
             <section id="searchResults" class="search-results" style="display: none;">
-                <h3>Clinical Trials Found</h3>
+                <div class="results-header">
+                    <h3>Clinical Trials Found for <span id="userCondition"></span></h3>
+                    <p class="personalized-message">Based on your information, here are relevant clinical trials in your area:</p>
+                </div>
                 <div id="resultsContainer" class="results-container">
                     <!-- Results will be populated here -->
                 </div>
-                <div class="cta-section">
-                    <h4>Interested in participating?</h4>
-                    <p>Enter your information below to get connected with clinical trials that match your profile.</p>
-                    <button id="showFormBtn" class="cta-btn">Get Started</button>
+                <div class="results-footer">
+                    <p>We'll continue to monitor for new trials that match your profile and notify you when they become available.</p>
+
+                <!-- Success Message (now inside results section) -->
+                <div id="successMessage" class="success-message" style="display: none;">
+                    <div class="success-content">
+                        <h3>Welcome to ClinicalGoTo, <span id="welcomeName"></span>!</h3>
+                        <p>Thank you for joining our clinical trials network. You will receive a welcome email shortly with more information.</p>
+                        <p>We found <span id="trialsFound"></span> clinical trials that match your condition above. Our team will review these opportunities and contact you about the most promising matches.</p>
+                        <div class="next-steps">
+                            <h4>What happens next?</h4>
+                            <ul>
+                                <li>You will receive a welcome email with your clinical trial matches</li>
+                                <li>Our team will review your profile for the best opportunities</li>
+                                <li>We will contact you when we find trials that match your criteria</li>
+                                <li>You can always update your preferences or conditions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 </div>
             </section>
 
-            <!-- User Registration Form -->
-            <section id="registrationForm" class="registration-form" style="display: none;">
-                <div class="form-container">
-                    <h3>Get Connected to Clinical Trials</h3>
-                    <form id="userForm" class="user-form">
-                        <!-- Step 1: Full Name -->
-                        <div class="form-step active" id="step1">
-                            <label for="fullName">What's your full name?</label>
-                            <input type="text" id="fullName" name="fullName" class="form-input">
-                            <button type="button" class="next-btn" data-next-step="2">Next</button>
-                        </div>
-
-                        <!-- Step 2: Email -->
-                        <div class="form-step" id="step2">
-                            <label for="email">What's your email address?</label>
-                            <input type="email" id="email" name="email" class="form-input">
-                            <button type="button" class="prev-btn" data-prev-step="1">Previous</button>
-                            <button type="button" class="next-btn" data-next-step="3">Next</button>
-                        </div>
-
-                        <!-- Step 3: Phone -->
-                        <div class="form-step" id="step3">
-                            <label for="phone">What's your phone number?</label>
-                            <input type="tel" id="phone" name="phone" class="form-input">
-                            <button type="button" class="prev-btn" data-prev-step="2">Previous</button>
-                            <button type="button" class="next-btn" data-next-step="4">Next</button>
-                        </div>
-
-                        <!-- Step 4: Address -->
-                        <div class="form-step" id="step4">
-                            <label for="address">What's your address?</label>
-                            <textarea id="address" name="address" class="form-input" placeholder="Street address, city, state, zip code"></textarea>
-                            <button type="button" class="prev-btn" data-prev-step="3">Previous</button>
-                            <button type="button" class="next-btn" data-next-step="5">Next</button>
-                        </div>
-
-                        <!-- Step 5: Consent -->
-                        <div class="form-step" id="step5">
-                            <div class="consent-section">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="consent" name="consent">
-                                    <span class="checkmark"></span>
-                                    I agree to be contacted regarding clinical trials and healthcare research opportunities.
-                                </label>
-                            </div>
-                            <button type="button" class="prev-btn" data-prev-step="4">Previous</button>
-                            <button type="submit" class="submit-btn">Join Clinical Trials Network</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <!-- Success Message -->
-            <section id="successMessage" class="success-message" style="display: none;">
-                <div class="success-content">
-                    <h3>Welcome to ClinicalGoTo!</h3>
-                    <p>Thank you for joining our clinical trials network. You'll receive a welcome email shortly with more information.</p>
-                    <p>We'll be in touch when we find clinical trials that match your profile.</p>
-                </div>
-            </section>
         </div>
     </main>
 
@@ -169,19 +186,19 @@
         
         // Debug: Check if all DOM elements exist after page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('=== DOM LOADED - DEBUGGING ===');
+            console.log('=== DOM LOADED - NEW FLOW DEBUGGING ===');
             
             const elements = {
-                'searchBtn': document.getElementById('searchBtn'),
-                'locationInput': document.getElementById('locationInput'),
-                'showFormBtn': document.getElementById('showFormBtn'),
-                'registrationForm': document.getElementById('registrationForm'),
-                'userForm': document.getElementById('userForm'),
-                'step1': document.getElementById('step1'),
-                'step2': document.getElementById('step2'),
+                'userInfoForm': document.getElementById('userInfoForm'),
                 'fullName': document.getElementById('fullName'),
-                'nextBtn1': document.querySelector('#step1 .next-btn'),
-                'nextBtn2': document.querySelector('#step2 .next-btn')
+                'email': document.getElementById('email'),
+                'phone': document.getElementById('phone'),
+                'condition': document.getElementById('condition'),
+                'location': document.getElementById('location'),
+                'consent': document.getElementById('consent'),
+                'step1': document.getElementById('step1'),
+                'searchResults': document.getElementById('searchResults'),
+                'successMessage': document.getElementById('successMessage')
             };
             
             Object.keys(elements).forEach(name => {
@@ -192,17 +209,9 @@
                 }
             });
             
-            // Test button clicks
-            const nextBtns = document.querySelectorAll('.next-btn');
-            console.log('Found', nextBtns.length, 'Next buttons');
-            
-            nextBtns.forEach((btn, index) => {
-                console.log('Next button', index + 1, 'data-next-step:', btn.getAttribute('data-next-step'));
-            });
-            
-            console.log('=== END DOM DEBUG ===');
+            console.log('=== END NEW FLOW DEBUG ===');
         });
     </script>
-    <script src="/js/app.js?v=2025010205"></script>
+    <script src="/js/app.js?v=1753739812"></script>
 </body>
 </html>

@@ -1,31 +1,77 @@
+const database = require("./database");
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const fs = require('fs');
-const path = require('path');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const validator = require('validator');
-const fetch = require('node-fetch');
+const path = require('path');
+const fs = require('fs');
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
+
+// Load environment variables
+require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Security middleware - CSP configured for form functionality
+// Trust proxy for rate limiting and proper session handling
+app.set('trust proxy', 1);
+const PORT = process.env.PORT || 5555;
+
+// Session configuration - using memory store and session-friendly settings
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-super-secret-key-change-this-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // Set to false for development
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax'
+    }
+}));
+
+// Admin credentials
+const ADMIN_CREDENTIALS = {
+    username: process.env.ADMIN_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD || 'admin123'
+};
+
+// Hash admin password
+let hashedAdminPassword;
+(async () => {
+    hashedAdminPassword = await bcrypt.hash(ADMIN_CREDENTIALS.password, 10);
+    console.log('Admin credentials initialized');
+})();
+
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+    if (req.session && req.session.isAuthenticated) {
+        return next();
+    } else {
+        if (req.accepts('html')) {
+            return res.redirect('/admin-login');
+        }
+        return res.status(401).json({ 
+            success: false, 
+            error: 'Authentication required'
+        });
+    }
+};
+
+// Security middleware
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https:"],
-            fontSrc: ["'self'", "https:", "data:"],
-            objectSrc: ["'none'"],
-            mediaSrc: ["'self'"],
-            frameSrc: ["'none'"],
-        },
-    },
+            connectSrc: ["'self'", "https://clinicaltrials.gov"]
+        }
+    }
 }));
 
 // Rate limiting
@@ -36,8 +82,13 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Middleware
-app.use(cors());
+// CORS configuration
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+    credentials: true
+}));
+
+// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -51,29 +102,29 @@ app.get('/js/app.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'js', 'app.js'));
 });
 
-// Serve static files with no-cache headers for development
-app.use(express.static('.', {
-    setHeaders: (res, path) => {
-        // Disable caching for development
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
+// Serve static files with session-friendly caching
+app.use(express.static('.'  , {
+    setHeaders: (res, filePath) => {
+        // Only disable caching for JS/CSS files, allow caching for HTML
+        if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        } else {
+            // Allow reasonable caching for HTML files to maintain sessions
+            res.setHeader('Cache-Control', 'private, max-age=300');
+        }
     }
 }));
 
-
-// Email transporter configuration
+// Email configuration
 let transporter = null;
-
-// Only configure email if credentials are provided
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS && 
-    process.env.EMAIL_USER !== 'your-email@gmail.com' && 
-    process.env.EMAIL_PASS !== 'your-app-password') {
-    transporter = nodemailer.createTransport({
-        service: 'gmail',
+if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransporter({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === 'true',
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
         }
     });
     console.log('Email service configured');
@@ -81,9 +132,7 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS &&
     console.log('Email service not configured - emails will be skipped');
 }
 
-// In-memory storage for demo purposes
-// In production, use a proper database
-const subscribers = [];
+// SQLite database storage
 
 // Routes
 
@@ -102,43 +151,109 @@ app.get('/api/app-script', (req, res) => {
     res.sendFile(path.join(__dirname, 'js', 'app.js'));
 });
 
-// Submit user registration
+// Email sending function
+async function sendWelcomeEmail(subscriber) {
+    if (!transporter) {
+        throw new Error('Email service not configured');
+    }
+
+    const mailOptions = {
+        from: process.env.FROM_EMAIL || 'noreply@clinicalgoto.com',
+        to: subscriber.email,
+        subject: 'Welcome to ClinicalGoTo - Your Clinical Trial Journey Begins',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0; font-size: 2rem;">🏥 Welcome to ClinicalGoTo</h1>
+                    <p style="color: white; margin: 10px 0 0 0; font-size: 1.1rem; opacity: 0.9;">Your Gateway to Clinical Research</p>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h2 style="color: #2c3e50; margin-top: 0;">Hello ${subscriber.fullName}! 👋</h2>
+                    
+                    <p style="color: #555; line-height: 1.6; font-size: 1rem;">
+                        Thank you for registering with ClinicalGoTo! We're excited to help you discover clinical trial opportunities that match your needs.
+                    </p>
+                    
+                    <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
+                        <h3 style="color: #2c3e50; margin-top: 0;">📋 Your Registration Details:</h3>
+                        <ul style="color: #555; line-height: 1.8;">
+                            <li><strong>Name:</strong> ${subscriber.fullName}</li>
+                            <li><strong>Email:</strong> ${subscriber.email}</li>
+                            <li><strong>Phone:</strong> ${subscriber.phone}</li>
+                            ${subscriber.address ? `<li><strong>Address:</strong> ${subscriber.address}</li>` : ''}
+                            ${subscriber.condition ? `<li><strong>Condition:</strong> ${subscriber.condition}</li>` : ''}
+                            ${subscriber.location ? `<li><strong>Location:</strong> ${subscriber.location}</li>` : ''}
+                        </ul>
+                    </div>
+                    
+                    <h3 style="color: #2c3e50;">🔍 What Happens Next?</h3>
+                    <ol style="color: #555; line-height: 1.8;">
+                        <li><strong>Personalized Matching:</strong> Our system will continuously search for clinical trials that match your criteria</li>
+                        <li><strong>Regular Updates:</strong> You'll receive notifications when new relevant trials become available</li>
+                        <li><strong>Expert Support:</strong> Our team is here to help you understand your options and navigate the process</li>
+                    </ol>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                        <h3 style="color: #2c3e50; margin-top: 0;">🌟 Important Reminder</h3>
+                        <p style="color: #666; margin-bottom: 0; font-style: italic;">
+                            Always consult with your healthcare provider before considering participation in any clinical trial. 
+                            They can help you understand if a particular study is right for your specific situation.
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://clinicalgoto.com" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+                            🏠 Visit Our Portal
+                        </a>
+                    </div>
+                    
+                    <hr style="border: none; height: 1px; background: #eee; margin: 30px 0;">
+                    
+                    <p style="color: #888; font-size: 0.9rem; text-align: center; margin: 0;">
+                        Questions? Contact our support team at <a href="mailto:support@clinicalgoto.com" style="color: #3498db;">support@clinicalgoto.com</a>
+                        <br><br>
+                        <em>ClinicalGoTo - Connecting Patients with Clinical Research Opportunities</em>
+                    </p>
+                </div>
+            </div>
+        `
+    };
+
+    return transporter.sendMail(mailOptions);
+}
+
+// Registration endpoint
 app.post('/api/register', async (req, res) => {
     try {
         const { fullName, email, phone, address, consent } = req.body;
-        
-        // Validation
-        if (!fullName || !email || !phone || !address || !consent) {
-            return res.status(400).json({ 
-                error: 'All fields are required' 
+
+        // Input validation
+        if (!fullName || !email || !phone) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields: fullName, email, and phone are required'
             });
         }
-        
-        // Email validation
+
         if (!validator.isEmail(email)) {
-            return res.status(400).json({ 
-                error: 'Invalid email address' 
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid email format'
             });
         }
-        
-        // Phone validation
-        if (!validator.isMobilePhone(phone)) {
-            return res.status(400).json({ 
-                error: 'Invalid phone number' 
+
+        // Check if user already exists
+        const existingUser = await database.getUserByEmail(email);
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                error: 'User with this email already exists'
             });
         }
-        
-        // Check if email already exists
-        const existingSubscriber = subscribers.find(sub => sub.email === email);
-        if (existingSubscriber) {
-            return res.status(409).json({ 
-                error: 'Email already registered' 
-            });
-        }
-        
-        // Create subscriber record
+
+        // Create subscriber object
         const subscriber = {
-            id: Date.now().toString(),
             fullName: validator.escape(fullName),
             email: validator.normalizeEmail(email),
             phone: validator.escape(phone),
@@ -148,8 +263,8 @@ app.post('/api/register', async (req, res) => {
             isActive: true
         };
         
-        // Save to storage (in production, save to database)
-        subscribers.push(subscriber);
+        // Save to SQLite database
+        const savedUser = await database.addUser(subscriber);
         
         // Try to send welcome email (don't fail if email service is not configured)
         try {
@@ -160,199 +275,265 @@ app.post('/api/register', async (req, res) => {
             // Continue with registration even if email fails
         }
         
-        res.status(201).json({ 
-            message: 'Registration successful',
-            subscriberId: subscriber.id
+        console.log(`New registration: ${subscriber.email}`);
+        
+        res.json({
+            success: true,
+            message: 'Registration successful! Welcome email sent if email service is configured.',
+            subscriber: {
+                fullName: subscriber.fullName,
+                email: subscriber.email,
+                registeredAt: subscriber.registeredAt
+            }
         });
         
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ 
-            error: 'Internal server error' 
+        res.status(500).json({
+            success: false,
+            error: 'Registration failed. Please try again.'
         });
     }
 });
 
-// Get subscriber by ID
-app.get('/api/subscriber/:id', (req, res) => {
-    const subscriber = subscribers.find(sub => sub.id === req.params.id);
-    
-    if (!subscriber) {
-        return res.status(404).json({ error: 'Subscriber not found' });
-    }
-    
-    // Remove sensitive information before sending
-    const { email, phone, address, ...publicData } = subscriber;
-    res.json(publicData);
-});
-
-// Unsubscribe endpoint
-app.post('/api/unsubscribe', (req, res) => {
-    const { email, token } = req.body;
-    
-    if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
-    }
-    
-    const subscriber = subscribers.find(sub => sub.email === email);
-    
-    if (!subscriber) {
-        return res.status(404).json({ error: 'Subscriber not found' });
-    }
-    
-    // In production, verify the unsubscribe token
-    subscriber.isActive = false;
-    subscriber.unsubscribedAt = new Date().toISOString();
-    
-    res.json({ message: 'Successfully unsubscribed' });
-});
-
-// Update subscriber preferences
-app.put('/api/subscriber/:id/preferences', (req, res) => {
-    const subscriber = subscribers.find(sub => sub.id === req.params.id);
-    
-    if (!subscriber) {
-        return res.status(404).json({ error: 'Subscriber not found' });
-    }
-    
-    // Update preferences
-    const { emailFrequency, notifications } = req.body;
-    
-    subscriber.preferences = {
-        emailFrequency: emailFrequency || 'weekly',
-        notifications: notifications || ['clinical-trials', 'newsletter']
-    };
-    
-    res.json({ message: 'Preferences updated successfully' });
-});
-
-// Send welcome email function
-async function sendWelcomeEmail(subscriber) {
-    if (!transporter) {
-        throw new Error('Email service not configured');
-    }
-    
+// Combined registration and search endpoint
+app.post('/api/register-and-search', async (req, res) => {
     try {
-        // Read email template
-        const templatePath = path.join(__dirname, 'templates', 'welcome-email.html');
-        let emailTemplate = fs.readFileSync(templatePath, 'utf8');
+        const { fullName, email, phone, condition, location, consent } = req.body;
+
+        // Input validation
+        const requiredFields = ['fullName', 'email', 'phone', 'condition', 'location'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
         
-        // Replace dynamic variables
-        emailTemplate = emailTemplate.replace(/{{USER_NAME}}/g, subscriber.fullName);
-        emailTemplate = emailTemplate.replace(/{{USER_EMAIL}}/g, subscriber.email);
-        emailTemplate = emailTemplate.replace(/{{PORTAL_URL}}/g, `${process.env.WEBSITE_URL || 'https://clinicalgoto.com'}/portal`);
-        emailTemplate = emailTemplate.replace(/{{WEBSITE_URL}}/g, process.env.WEBSITE_URL || 'https://clinicalgoto.com');
-        emailTemplate = emailTemplate.replace(/{{UNSUBSCRIBE_URL}}/g, `${process.env.WEBSITE_URL || 'https://clinicalgoto.com'}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`);
-        emailTemplate = emailTemplate.replace(/{{PREFERENCES_URL}}/g, `${process.env.WEBSITE_URL || 'https://clinicalgoto.com'}/preferences/${subscriber.id}`);
-        emailTemplate = emailTemplate.replace(/{{PRIVACY_URL}}/g, `${process.env.WEBSITE_URL || 'https://clinicalgoto.com'}/privacy`);
-        emailTemplate = emailTemplate.replace(/{{FACEBOOK_URL}}/g, 'https://facebook.com/clinicalgoto');
-        emailTemplate = emailTemplate.replace(/{{TWITTER_URL}}/g, 'https://twitter.com/clinicalgoto');
-        emailTemplate = emailTemplate.replace(/{{LINKEDIN_URL}}/g, 'https://linkedin.com/company/clinicalgoto');
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: `Missing required fields: ${missingFields.join(', ')}`
+            });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid email format'
+            });
+        }
+
+        // Create subscriber object
+        const subscriber = {
+            fullName: validator.escape(fullName),
+            email: validator.normalizeEmail(email),
+            phone: validator.escape(phone),
+            location: validator.escape(location),
+            condition: validator.escape(condition),
+            consent: consent === true,
+            registeredAt: new Date().toISOString(),
+            isActive: true
+        };
         
-        // Email configuration
-        const mailOptions = {
-            from: {
-                name: 'ClinicalGoTo',
-                address: process.env.EMAIL_FROM || 'noreply@clinicalgoto.com'
+        // Save to SQLite database
+        const savedUser = await database.addUser(subscriber);
+        
+        // Try to send welcome email (don't fail if email service is not configured)
+        try {
+            await sendWelcomeEmail(subscriber);
+            console.log(`Welcome email sent to ${subscriber.email}`);
+        } catch (emailError) {
+            console.log(`Welcome email failed for ${subscriber.email}:`, emailError.message);
+            // Continue with registration even if email fails
+        }
+
+        // Simulate clinical trial search (replace with actual API call)
+        const mockTrials = [
+            {
+                id: "NCT12345678",
+                title: `Clinical Trial for ${condition}`,
+                status: "Recruiting",
+                location: location,
+                description: `A study investigating new treatments for ${condition} in ${location}.`,
+                eligibility: "Adults 18-65 years old",
+                contact: "research@example.com"
             },
-            to: subscriber.email,
-            subject: `Welcome to ClinicalGoTo, ${subscriber.fullName}!`,
-            html: emailTemplate,
-            text: `Welcome to ClinicalGoTo, ${subscriber.fullName}! Thank you for joining our clinical trials network. We'll be in touch when we find clinical trials that match your profile.`
-        };
-        
-        // Send email
-        await transporter.sendMail(mailOptions);
-        console.log(`Welcome email sent to ${subscriber.email}`);
-        
-    } catch (error) {
-        console.error('Error sending welcome email:', error);
-        throw error;
-    }
-}
+            {
+                id: "NCT87654321", 
+                title: `Advanced Treatment Study - ${condition}`,
+                status: "Recruiting",
+                location: location,
+                description: `Phase II clinical trial examining innovative approaches to ${condition} treatment.`,
+                eligibility: "Adults with confirmed diagnosis",
+                contact: "trials@example.com"
+            }
+        ];
 
-// Clinical trials search proxy (to avoid CORS issues)
-app.get('/api/clinical-trials', async (req, res) => {
-    try {
-        const { location, condition, pageSize = 10 } = req.query;
+        console.log(`Registration and search completed for: ${subscriber.email}`);
         
-        if (!location) {
-            return res.status(400).json({ error: 'Location is required' });
-        }
-        
-        // Build search parameters
-        const params = new URLSearchParams({
-            'query.locn': location,
-            'filter.overallStatus': 'RECRUITING',
-            'pageSize': pageSize.toString(),
-            'countTotal': 'true'
+        res.json({
+            success: true,
+            message: 'Registration successful! Clinical trials found.',
+            subscriber: {
+                fullName: subscriber.fullName,
+                email: subscriber.email,
+                condition: subscriber.condition,
+                location: subscriber.location,
+                registeredAt: subscriber.registeredAt  
+            },
+            trials: mockTrials
         });
         
-        if (condition) {
-            params.append('query.cond', condition);
-        }
-        
-        // Make request to ClinicalTrials.gov API
-        const apiUrl = `https://clinicaltrials.gov/api/v2/studies?${params}`;
-        const response = await fetch(apiUrl);
-        
-        if (!response.ok) {
-            throw new Error(`API request failed: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Transform data for frontend
-        const transformedData = {
-            totalCount: data.totalCount || 0,
-            studies: (data.studies || []).map(study => {
-                const nctId = study.protocolSection?.identificationModule?.nctId;
-                const locationData = study.protocolSection?.contactsLocationsModule?.locations?.[0];
-                return {
-                    id: nctId,
-                    title: study.protocolSection?.identificationModule?.briefTitle || 'Untitled Study',
-                    description: study.protocolSection?.descriptionModule?.briefSummary || 'No description available.',
-                    location: locationData?.facility?.name || locationData?.city || 'Location not specified',
-                    status: study.protocolSection?.statusModule?.overallStatus,
-                    phase: study.protocolSection?.designModule?.phases?.[0],
-                    condition: study.protocolSection?.conditionsModule?.conditions?.[0]
-                };
-            })
-        };
-        
-        res.json(transformedData);
-        
     } catch (error) {
-        console.error('Clinical trials search error:', error);
-        res.status(500).json({ error: 'Failed to search clinical trials' });
+        console.error('Registration and search error:', error);
+        
+        // If it's a database constraint error (duplicate email)
+        if (error.message && error.message.includes('UNIQUE constraint failed')) {
+            return res.status(409).json({
+                success: false,
+                error: 'An account with this email already exists.'
+            });
+        }
+        
+        res.status(500).json({
+            success: false,
+            error: 'Registration failed. Please try again.'
+        });
     }
 });
-
-// Admin endpoints (protected in production)
-app.get('/api/admin/subscribers', (req, res) => {
-    // In production, add authentication middleware
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    
-    const paginatedSubscribers = subscribers
-        .slice(startIndex, endIndex)
-        .map(({ email, phone, address, ...publicData }) => publicData);
-    
-    res.json({
-        subscribers: paginatedSubscribers,
-        totalCount: subscribers.length,
-        page,
-        totalPages: Math.ceil(subscribers.length / limit)
-    });
-});
-
 
 // Explicitly serve service worker
 app.get('/sw.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
+// Authentication routes
+app.get('/admin-login', (req, res) => {
+    if (req.session && req.session.isAuthenticated) {
+        return res.redirect('/admin');
+    }
+    res.sendFile(path.join(__dirname, 'admin-login.html'));
+});
+
+app.post('/api/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Username and password are required'
+            });
+        }
+        
+        if (username === ADMIN_CREDENTIALS.username) {
+            const passwordMatch = await bcrypt.compare(password, hashedAdminPassword);
+            
+            if (passwordMatch) {
+                req.session.isAuthenticated = true;
+                req.session.username = username;
+                
+                console.log(`Admin login successful for user: ${username}`);
+                
+                return res.json({
+                    success: true,
+                    message: 'Login successful',
+                    sessionVerified: true
+                });
+            }
+        }
+        
+        console.log(`Failed login attempt for username: ${username}`);
+        return res.status(401).json({
+            success: false,
+            error: 'Invalid username or password'
+        });
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({
+                success: false,
+                error: 'Logout failed'
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Logged out successfully'
+        });
+    });
+});
+
+// Admin endpoints
+app.get("/admin", requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+// Get all users for admin
+app.get("/api/admin/users", requireAuth, async (req, res) => {
+    try {
+        const users = await database.getAllUsers();
+        console.log(`Admin: Fetching ${users.length} user records`);
+        res.json({
+            success: true,
+            users: users,
+            total: users.length
+        });
+    } catch (error) {
+        console.error("Error fetching admin users:", error);
+        res.status(500).json({
+            success: false,
+            error: "Failed to fetch users",
+            users: [],
+            total: 0
+        });
+    }
+});
+
+// Delete user record
+app.post("/api/admin/users/delete", requireAuth, async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                error: "Email is required"
+            });
+        }
+
+        await database.deleteUser(email);
+        const remainingUsers = await database.getAllUsers();
+        
+        console.log(`Admin: Deleted user with email ${email}. Users remaining: ${remainingUsers.length}`);
+        
+        res.json({
+            success: true,
+            message: "User deleted successfully",
+            remainingUsers: remainingUsers.length
+        });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        if (error.message === "User not found") {
+            res.status(404).json({
+                success: false,
+                error: "User not found"
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: "Failed to delete user"
+            });
+        }
+    }
 });
 
 // 404 handler
@@ -371,5 +552,3 @@ app.listen(PORT, () => {
     console.log(`ClinicalGoTo server running on port ${PORT}`);
     console.log(`Visit: http://localhost:${PORT}`);
 });
-
-module.exports = app;
