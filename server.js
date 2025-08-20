@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const { logVisitor } = require('./utils/logger');
 
 // Load environment variables
 require('dotenv').config();
@@ -17,7 +18,8 @@ const app = express();
 
 // Trust proxy for rate limiting and proper session handling
 app.set('trust proxy', 1);
-const PORT = process.env.PORT || 5555;
+// Use port 3001 by default to avoid conflicts with Docker
+const PORT = process.env.PORT || 3001;
 
 // Session configuration - using memory store and session-friendly settings
 app.use(session({
@@ -226,7 +228,7 @@ async function sendWelcomeEmail(subscriber) {
 // Registration endpoint
 app.post('/api/register', async (req, res) => {
     try {
-        const { fullName, email, phone, address, consent } = req.body;
+        const { fullName, email, phone, address, consent, condition, location } = req.body;
 
         // Input validation
         if (!fullName || !email || !phone) {
@@ -252,12 +254,13 @@ app.post('/api/register', async (req, res) => {
             });
         }
 
-        // Create subscriber object
+        // Create subscriber object with all required fields
         const subscriber = {
             fullName: validator.escape(fullName),
             email: validator.normalizeEmail(email),
             phone: validator.escape(phone),
-            address: validator.escape(address),
+            condition: condition ? validator.escape(condition) : 'Not specified',
+            location: location ? validator.escape(location) : (address ? validator.escape(address) : 'Not specified'),
             consent: consent === true,
             registeredAt: new Date().toISOString(),
             isActive: true
@@ -265,6 +268,16 @@ app.post('/api/register', async (req, res) => {
         
         // Save to SQLite database
         const savedUser = await database.addUser(subscriber);
+        
+        // Log visitor information with all available data
+        logVisitor(req, {
+            fullName: subscriber.fullName,
+            email: subscriber.email,
+            phone: subscriber.phone,
+            condition: subscriber.condition || '',
+            location: subscriber.location || subscriber.address || '',
+            consent: subscriber.consent || false
+        });
         
         // Try to send welcome email (don't fail if email service is not configured)
         try {
@@ -333,6 +346,16 @@ app.post('/api/register-and-search', async (req, res) => {
         
         // Save to SQLite database
         const savedUser = await database.addUser(subscriber);
+        
+        // Log visitor information with all available data
+        logVisitor(req, {
+            fullName: subscriber.fullName,
+            email: subscriber.email,
+            phone: subscriber.phone,
+            condition: subscriber.condition || '',
+            location: subscriber.location || subscriber.address || '',
+            consent: subscriber.consent || false
+        });
         
         // Try to send welcome email (don't fail if email service is not configured)
         try {

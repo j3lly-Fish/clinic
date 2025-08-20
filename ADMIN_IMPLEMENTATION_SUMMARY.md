@@ -48,8 +48,14 @@ Fully functional, production-ready admin authentication system with enterprise-g
 - `admin-login.html` - Professional login interface
 - `ADMIN_AUTH_README.md` - Comprehensive documentation
 - `ADMIN_IMPLEMENTATION_SUMMARY.md` - This summary
+- `utils/logger.js` - Visitor logging system
+- `visitors.csv` - Log file for visitor data
 
 ### **Modified Files:**
+- `server.js` - Added visitor logging to registration endpoints
+- `database.js` - Updated user schema with additional fields
+- `CHANGELOG.md` - Added visitor logging feature documentation
+- `README.md` - Updated with visitor logging information
 - `server.js` - Added authentication system
 - `admin.html` - Added logout functionality
 - `.env` - Added admin credentials

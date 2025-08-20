@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 📊 **Visitor Logging System**: Comprehensive visitor tracking and logging
+  - Logs visitor information to CSV file with timestamp and details
+  - Tracks IP, user agent, and form submission data
+  - Stores logs in `/visitors.csv` with proper error handling
+  - Includes all form fields: name, email, phone, condition, and location
 - 🔐 **Admin Authentication System**: Secure admin login with session-based authentication
   - Admin login page with professional interface
   - Password hashing using bcrypt for security

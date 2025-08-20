@@ -1,0 +1,2 @@
+timestamp,ip,userAgent,fullName,email,phone,condition,location,consent
+"2025-08-20T21:31:10.385Z","127.0.0.1","Test User Agent","Test User","test@example.com","123-456-7890","Test Condition","Test Location","true"

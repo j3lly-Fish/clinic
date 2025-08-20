@@ -11,6 +11,17 @@ ClinicalGoTo is a comprehensive web application that connects people with clinic
 
 ## ✨ Features
 
+### Visitor Logging
+ClinicalGoTo includes a comprehensive visitor logging system that tracks:
+- Timestamp of each visit
+- Visitor's IP address and user agent
+- Form submission data (name, email, phone, condition, location)
+- Consent status
+
+Logs are stored in `visitors.csv` in the project root directory for easy analysis and reporting.
+
+## 📋 System Requirements
+
 - **🔍 Clinical Trial Search**: Real-time search integration with ClinicalTrials.gov API
 - **📋 Multi-step Registration**: User-friendly form that collects visitor information progressively
 - **📧 Welcome Email System**: Automated welcome emails with personalized content
@@ -22,6 +33,7 @@ ClinicalGoTo is a comprehensive web application that connects people with clinic
 - **👥 User Management**: Admin interface for viewing and managing registered users
 - **🛡️ Security Features**: Rate limiting, password hashing, and session management
 - **🔍 SEO Optimized**: Structured data and meta tags for search visibility
+- **📊 Visitor Logging**: Comprehensive visitor tracking with detailed analytics
 
 ## 🚀 Quick Start
 
